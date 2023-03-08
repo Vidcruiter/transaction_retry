@@ -16,20 +16,15 @@ module TransactionRetry
       
       module ClassMethods
         
-        def transaction_with_retry(*objects, &block)
+        def transaction_with_retry(**objects, &block)
           retry_count = 0
-
-          opts = if objects.last.is_a? Hash
-            objects.last
-          else
-            {}
-          end
+          opts = objects
 
           retry_on = opts.delete(:retry_on)
           max_retries = opts.delete(:max_retries) || TransactionRetry.max_retries
 
           begin
-            transaction_without_retry(*objects, &block)
+            transaction_without_retry(**objects, &block)
           rescue *[::ActiveRecord::TransactionIsolationConflict, *retry_on]
             raise if retry_count >= max_retries
             raise if tr_in_nested_transaction?
